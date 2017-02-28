@@ -1,0 +1,772 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket"
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path": "/"
+      }
+    },
+    "IamPolicyLambdaExecution": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "dev-pascoa-virtual-shoppings-lambda",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource": "arn:aws:logs:us-east-1:*:*"
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "IamRoleLambdaExecution"
+          }
+        ]
+      }
+    },
+    "BeerDynamo": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "id",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "id",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 1,
+          "WriteCapacityUnits": 1
+        },
+        "TableName": "pascoa-virtual-shoppings"
+      }
+    },
+    "AddShoppingLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/pascoa-virtual-shoppings/dev/1488294073936-2017-02-28T15:01:13.936Z/pascoa-virtual-shoppings.zip"
+        },
+        "FunctionName": "pascoa-virtual-shoppings-dev-addShopping",
+        "Handler": "handler.addShopping",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs4.3",
+        "Timeout": 6
+      }
+    },
+    "GetShoppingsLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/pascoa-virtual-shoppings/dev/1488294073936-2017-02-28T15:01:13.936Z/pascoa-virtual-shoppings.zip"
+        },
+        "FunctionName": "pascoa-virtual-shoppings-dev-getShoppings",
+        "Handler": "handler.getShoppings",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs4.3",
+        "Timeout": 6
+      }
+    },
+    "UpdateShoppingLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/pascoa-virtual-shoppings/dev/1488294073936-2017-02-28T15:01:13.936Z/pascoa-virtual-shoppings.zip"
+        },
+        "FunctionName": "pascoa-virtual-shoppings-dev-updateShopping",
+        "Handler": "handler.updateShopping",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs4.3",
+        "Timeout": 6
+      }
+    },
+    "RemoveShoppingLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/pascoa-virtual-shoppings/dev/1488294073936-2017-02-28T15:01:13.936Z/pascoa-virtual-shoppings.zip"
+        },
+        "FunctionName": "pascoa-virtual-shoppings-dev-removeShopping",
+        "Handler": "handler.removeShopping",
+        "MemorySize": 1024,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        },
+        "Runtime": "nodejs4.3",
+        "Timeout": 6
+      }
+    },
+    "ApiGatewayRestApi": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Name": "dev-pascoa-virtual-shoppings"
+      }
+    },
+    "ApiGatewayResourcePascoaShoppings": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourcePascoa"
+        },
+        "PathPart": "shoppings",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourcePascoa": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "pascoa",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodPascoaShoppingsPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "POST",
+        "MethodResponses": [
+          {
+            "ResponseModels": {},
+            "ResponseParameters": {},
+            "StatusCode": 200
+          },
+          {
+            "StatusCode": 400
+          },
+          {
+            "StatusCode": 401
+          },
+          {
+            "StatusCode": 403
+          },
+          {
+            "StatusCode": 404
+          },
+          {
+            "StatusCode": 422
+          },
+          {
+            "StatusCode": 500
+          },
+          {
+            "StatusCode": 502
+          },
+          {
+            "StatusCode": 504
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "AddShoppingLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          },
+          "RequestTemplates": {
+            "application/json": "\n            #define( $loop )\n              {\n              #foreach($key in $map.keySet())\n                  \"$util.escapeJavaScript($key)\":\n                    \"$util.escapeJavaScript($map.get($key))\"\n                    #if( $foreach.hasNext ) , #end\n              #end\n              }\n            #end\n\n            {\n              \"body\": $input.json(\"$\"),\n              \"method\": \"$context.httpMethod\",\n              \"principalId\": \"$context.authorizer.principalId\",\n              \"stage\": \"$context.stage\",\n\n              #set( $map = $input.params().header )\n              \"headers\": $loop,\n\n              #set( $map = $input.params().querystring )\n              \"query\": $loop,\n\n              #set( $map = $input.params().path )\n              \"path\": $loop,\n\n              #set( $map = $context.identity )\n              \"identity\": $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\": $loop\n            }\n          ",
+            "application/x-www-form-urlencoded": "\n            #define( $body )\n              {\n              #foreach( $token in $input.path('$').split('&') )\n                #set( $keyVal = $token.split('=') )\n                #set( $keyValSize = $keyVal.size() )\n                #if( $keyValSize >= 1 )\n                  #set( $key = $util.escapeJavaScript($util.urlDecode($keyVal[0])) )\n                  #if( $keyValSize >= 2 )\n                    #set( $val = $util.escapeJavaScript($util.urlDecode($keyVal[1])) )\n                  #else\n                    #set( $val = '' )\n                  #end\n                  \"$key\": \"$val\"#if($foreach.hasNext),#end\n                #end\n              #end\n              }\n            #end\n\n            #define( $loop )\n              {\n              #foreach($key in $map.keySet())\n                  \"$util.escapeJavaScript($key)\":\n                    \"$util.escapeJavaScript($map.get($key))\"\n                    #if( $foreach.hasNext ) , #end\n              #end\n              }\n            #end\n\n            {\n              \"body\": $body,\n              \"method\": \"$context.httpMethod\",\n              \"principalId\": \"$context.authorizer.principalId\",\n              \"stage\": \"$context.stage\",\n\n              #set( $map = $input.params().header )\n              \"headers\": $loop,\n\n              #set( $map = $input.params().querystring )\n              \"query\": $loop,\n\n              #set( $map = $input.params().path )\n              \"path\": $loop,\n\n              #set( $map = $context.identity )\n              \"identity\": $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\": $loop\n            }\n          "
+          },
+          "PassthroughBehavior": "NEVER",
+          "IntegrationResponses": [
+            {
+              "StatusCode": 200,
+              "ResponseParameters": {},
+              "ResponseTemplates": {}
+            },
+            {
+              "StatusCode": 400,
+              "SelectionPattern": ".*\\[400\\].*"
+            },
+            {
+              "StatusCode": 401,
+              "SelectionPattern": ".*\\[401\\].*"
+            },
+            {
+              "StatusCode": 403,
+              "SelectionPattern": ".*\\[403\\].*"
+            },
+            {
+              "StatusCode": 404,
+              "SelectionPattern": ".*\\[404\\].*"
+            },
+            {
+              "StatusCode": 422,
+              "SelectionPattern": ".*\\[422\\].*"
+            },
+            {
+              "StatusCode": 500,
+              "SelectionPattern": ".*(Process\\s?exited\\s?before\\s?completing\\s?request|Task\\s?timed\\s?out\\s?|\\[500\\]).*"
+            },
+            {
+              "StatusCode": 502,
+              "SelectionPattern": ".*\\[502\\].*"
+            },
+            {
+              "StatusCode": 504,
+              "SelectionPattern": ".*\\[504\\].*"
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourcePascoaShoppings"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodPascoaShoppingsGet": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "GET",
+        "MethodResponses": [
+          {
+            "ResponseModels": {},
+            "ResponseParameters": {},
+            "StatusCode": 200
+          },
+          {
+            "StatusCode": 400
+          },
+          {
+            "StatusCode": 401
+          },
+          {
+            "StatusCode": 403
+          },
+          {
+            "StatusCode": 404
+          },
+          {
+            "StatusCode": 422
+          },
+          {
+            "StatusCode": 500
+          },
+          {
+            "StatusCode": 502
+          },
+          {
+            "StatusCode": 504
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "GetShoppingsLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          },
+          "RequestTemplates": {
+            "application/json": "\n            #define( $loop )\n              {\n              #foreach($key in $map.keySet())\n                  \"$util.escapeJavaScript($key)\":\n                    \"$util.escapeJavaScript($map.get($key))\"\n                    #if( $foreach.hasNext ) , #end\n              #end\n              }\n            #end\n\n            {\n              \"body\": $input.json(\"$\"),\n              \"method\": \"$context.httpMethod\",\n              \"principalId\": \"$context.authorizer.principalId\",\n              \"stage\": \"$context.stage\",\n\n              #set( $map = $input.params().header )\n              \"headers\": $loop,\n\n              #set( $map = $input.params().querystring )\n              \"query\": $loop,\n\n              #set( $map = $input.params().path )\n              \"path\": $loop,\n\n              #set( $map = $context.identity )\n              \"identity\": $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\": $loop\n            }\n          ",
+            "application/x-www-form-urlencoded": "\n            #define( $body )\n              {\n              #foreach( $token in $input.path('$').split('&') )\n                #set( $keyVal = $token.split('=') )\n                #set( $keyValSize = $keyVal.size() )\n                #if( $keyValSize >= 1 )\n                  #set( $key = $util.escapeJavaScript($util.urlDecode($keyVal[0])) )\n                  #if( $keyValSize >= 2 )\n                    #set( $val = $util.escapeJavaScript($util.urlDecode($keyVal[1])) )\n                  #else\n                    #set( $val = '' )\n                  #end\n                  \"$key\": \"$val\"#if($foreach.hasNext),#end\n                #end\n              #end\n              }\n            #end\n\n            #define( $loop )\n              {\n              #foreach($key in $map.keySet())\n                  \"$util.escapeJavaScript($key)\":\n                    \"$util.escapeJavaScript($map.get($key))\"\n                    #if( $foreach.hasNext ) , #end\n              #end\n              }\n            #end\n\n            {\n              \"body\": $body,\n              \"method\": \"$context.httpMethod\",\n              \"principalId\": \"$context.authorizer.principalId\",\n              \"stage\": \"$context.stage\",\n\n              #set( $map = $input.params().header )\n              \"headers\": $loop,\n\n              #set( $map = $input.params().querystring )\n              \"query\": $loop,\n\n              #set( $map = $input.params().path )\n              \"path\": $loop,\n\n              #set( $map = $context.identity )\n              \"identity\": $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\": $loop\n            }\n          "
+          },
+          "PassthroughBehavior": "NEVER",
+          "IntegrationResponses": [
+            {
+              "StatusCode": 200,
+              "ResponseParameters": {},
+              "ResponseTemplates": {}
+            },
+            {
+              "StatusCode": 400,
+              "SelectionPattern": ".*\\[400\\].*"
+            },
+            {
+              "StatusCode": 401,
+              "SelectionPattern": ".*\\[401\\].*"
+            },
+            {
+              "StatusCode": 403,
+              "SelectionPattern": ".*\\[403\\].*"
+            },
+            {
+              "StatusCode": 404,
+              "SelectionPattern": ".*\\[404\\].*"
+            },
+            {
+              "StatusCode": 422,
+              "SelectionPattern": ".*\\[422\\].*"
+            },
+            {
+              "StatusCode": 500,
+              "SelectionPattern": ".*(Process\\s?exited\\s?before\\s?completing\\s?request|Task\\s?timed\\s?out\\s?|\\[500\\]).*"
+            },
+            {
+              "StatusCode": 502,
+              "SelectionPattern": ".*\\[502\\].*"
+            },
+            {
+              "StatusCode": 504,
+              "SelectionPattern": ".*\\[504\\].*"
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourcePascoaShoppings"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodPascoaShoppingsPut": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "PUT",
+        "MethodResponses": [
+          {
+            "ResponseModels": {},
+            "ResponseParameters": {},
+            "StatusCode": 200
+          },
+          {
+            "StatusCode": 400
+          },
+          {
+            "StatusCode": 401
+          },
+          {
+            "StatusCode": 403
+          },
+          {
+            "StatusCode": 404
+          },
+          {
+            "StatusCode": 422
+          },
+          {
+            "StatusCode": 500
+          },
+          {
+            "StatusCode": 502
+          },
+          {
+            "StatusCode": 504
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "UpdateShoppingLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          },
+          "RequestTemplates": {
+            "application/json": "\n            #define( $loop )\n              {\n              #foreach($key in $map.keySet())\n                  \"$util.escapeJavaScript($key)\":\n                    \"$util.escapeJavaScript($map.get($key))\"\n                    #if( $foreach.hasNext ) , #end\n              #end\n              }\n            #end\n\n            {\n              \"body\": $input.json(\"$\"),\n              \"method\": \"$context.httpMethod\",\n              \"principalId\": \"$context.authorizer.principalId\",\n              \"stage\": \"$context.stage\",\n\n              #set( $map = $input.params().header )\n              \"headers\": $loop,\n\n              #set( $map = $input.params().querystring )\n              \"query\": $loop,\n\n              #set( $map = $input.params().path )\n              \"path\": $loop,\n\n              #set( $map = $context.identity )\n              \"identity\": $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\": $loop\n            }\n          ",
+            "application/x-www-form-urlencoded": "\n            #define( $body )\n              {\n              #foreach( $token in $input.path('$').split('&') )\n                #set( $keyVal = $token.split('=') )\n                #set( $keyValSize = $keyVal.size() )\n                #if( $keyValSize >= 1 )\n                  #set( $key = $util.escapeJavaScript($util.urlDecode($keyVal[0])) )\n                  #if( $keyValSize >= 2 )\n                    #set( $val = $util.escapeJavaScript($util.urlDecode($keyVal[1])) )\n                  #else\n                    #set( $val = '' )\n                  #end\n                  \"$key\": \"$val\"#if($foreach.hasNext),#end\n                #end\n              #end\n              }\n            #end\n\n            #define( $loop )\n              {\n              #foreach($key in $map.keySet())\n                  \"$util.escapeJavaScript($key)\":\n                    \"$util.escapeJavaScript($map.get($key))\"\n                    #if( $foreach.hasNext ) , #end\n              #end\n              }\n            #end\n\n            {\n              \"body\": $body,\n              \"method\": \"$context.httpMethod\",\n              \"principalId\": \"$context.authorizer.principalId\",\n              \"stage\": \"$context.stage\",\n\n              #set( $map = $input.params().header )\n              \"headers\": $loop,\n\n              #set( $map = $input.params().querystring )\n              \"query\": $loop,\n\n              #set( $map = $input.params().path )\n              \"path\": $loop,\n\n              #set( $map = $context.identity )\n              \"identity\": $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\": $loop\n            }\n          "
+          },
+          "PassthroughBehavior": "NEVER",
+          "IntegrationResponses": [
+            {
+              "StatusCode": 200,
+              "ResponseParameters": {},
+              "ResponseTemplates": {}
+            },
+            {
+              "StatusCode": 400,
+              "SelectionPattern": ".*\\[400\\].*"
+            },
+            {
+              "StatusCode": 401,
+              "SelectionPattern": ".*\\[401\\].*"
+            },
+            {
+              "StatusCode": 403,
+              "SelectionPattern": ".*\\[403\\].*"
+            },
+            {
+              "StatusCode": 404,
+              "SelectionPattern": ".*\\[404\\].*"
+            },
+            {
+              "StatusCode": 422,
+              "SelectionPattern": ".*\\[422\\].*"
+            },
+            {
+              "StatusCode": 500,
+              "SelectionPattern": ".*(Process\\s?exited\\s?before\\s?completing\\s?request|Task\\s?timed\\s?out\\s?|\\[500\\]).*"
+            },
+            {
+              "StatusCode": 502,
+              "SelectionPattern": ".*\\[502\\].*"
+            },
+            {
+              "StatusCode": 504,
+              "SelectionPattern": ".*\\[504\\].*"
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourcePascoaShoppings"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodPascoaShoppingsDelete": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "AuthorizationType": "NONE",
+        "HttpMethod": "DELETE",
+        "MethodResponses": [
+          {
+            "ResponseModels": {},
+            "ResponseParameters": {},
+            "StatusCode": 200
+          },
+          {
+            "StatusCode": 400
+          },
+          {
+            "StatusCode": 401
+          },
+          {
+            "StatusCode": 403
+          },
+          {
+            "StatusCode": 404
+          },
+          {
+            "StatusCode": 422
+          },
+          {
+            "StatusCode": 500
+          },
+          {
+            "StatusCode": 502
+          },
+          {
+            "StatusCode": 504
+          }
+        ],
+        "RequestParameters": {},
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:aws:apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "RemoveShoppingLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          },
+          "RequestTemplates": {
+            "application/json": "\n            #define( $loop )\n              {\n              #foreach($key in $map.keySet())\n                  \"$util.escapeJavaScript($key)\":\n                    \"$util.escapeJavaScript($map.get($key))\"\n                    #if( $foreach.hasNext ) , #end\n              #end\n              }\n            #end\n\n            {\n              \"body\": $input.json(\"$\"),\n              \"method\": \"$context.httpMethod\",\n              \"principalId\": \"$context.authorizer.principalId\",\n              \"stage\": \"$context.stage\",\n\n              #set( $map = $input.params().header )\n              \"headers\": $loop,\n\n              #set( $map = $input.params().querystring )\n              \"query\": $loop,\n\n              #set( $map = $input.params().path )\n              \"path\": $loop,\n\n              #set( $map = $context.identity )\n              \"identity\": $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\": $loop\n            }\n          ",
+            "application/x-www-form-urlencoded": "\n            #define( $body )\n              {\n              #foreach( $token in $input.path('$').split('&') )\n                #set( $keyVal = $token.split('=') )\n                #set( $keyValSize = $keyVal.size() )\n                #if( $keyValSize >= 1 )\n                  #set( $key = $util.escapeJavaScript($util.urlDecode($keyVal[0])) )\n                  #if( $keyValSize >= 2 )\n                    #set( $val = $util.escapeJavaScript($util.urlDecode($keyVal[1])) )\n                  #else\n                    #set( $val = '' )\n                  #end\n                  \"$key\": \"$val\"#if($foreach.hasNext),#end\n                #end\n              #end\n              }\n            #end\n\n            #define( $loop )\n              {\n              #foreach($key in $map.keySet())\n                  \"$util.escapeJavaScript($key)\":\n                    \"$util.escapeJavaScript($map.get($key))\"\n                    #if( $foreach.hasNext ) , #end\n              #end\n              }\n            #end\n\n            {\n              \"body\": $body,\n              \"method\": \"$context.httpMethod\",\n              \"principalId\": \"$context.authorizer.principalId\",\n              \"stage\": \"$context.stage\",\n\n              #set( $map = $input.params().header )\n              \"headers\": $loop,\n\n              #set( $map = $input.params().querystring )\n              \"query\": $loop,\n\n              #set( $map = $input.params().path )\n              \"path\": $loop,\n\n              #set( $map = $context.identity )\n              \"identity\": $loop,\n\n              #set( $map = $stageVariables )\n              \"stageVariables\": $loop\n            }\n          "
+          },
+          "PassthroughBehavior": "NEVER",
+          "IntegrationResponses": [
+            {
+              "StatusCode": 200,
+              "ResponseParameters": {},
+              "ResponseTemplates": {}
+            },
+            {
+              "StatusCode": 400,
+              "SelectionPattern": ".*\\[400\\].*"
+            },
+            {
+              "StatusCode": 401,
+              "SelectionPattern": ".*\\[401\\].*"
+            },
+            {
+              "StatusCode": 403,
+              "SelectionPattern": ".*\\[403\\].*"
+            },
+            {
+              "StatusCode": 404,
+              "SelectionPattern": ".*\\[404\\].*"
+            },
+            {
+              "StatusCode": 422,
+              "SelectionPattern": ".*\\[422\\].*"
+            },
+            {
+              "StatusCode": 500,
+              "SelectionPattern": ".*(Process\\s?exited\\s?before\\s?completing\\s?request|Task\\s?timed\\s?out\\s?|\\[500\\]).*"
+            },
+            {
+              "StatusCode": 502,
+              "SelectionPattern": ".*\\[502\\].*"
+            },
+            {
+              "StatusCode": 504,
+              "SelectionPattern": ".*\\[504\\].*"
+            }
+          ]
+        },
+        "ResourceId": {
+          "Ref": "ApiGatewayResourcePascoaShoppings"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayDeployment1488294073945": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "StageName": "dev"
+      },
+      "DependsOn": [
+        "ApiGatewayMethodPascoaShoppingsPost",
+        "ApiGatewayMethodPascoaShoppingsGet",
+        "ApiGatewayMethodPascoaShoppingsPut",
+        "ApiGatewayMethodPascoaShoppingsDelete"
+      ]
+    },
+    "AddShoppingLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AddShoppingLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com"
+      }
+    },
+    "GetShoppingsLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GetShoppingsLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com"
+      }
+    },
+    "UpdateShoppingLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "UpdateShoppingLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com"
+      }
+    },
+    "RemoveShoppingLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "RemoveShoppingLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com"
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      }
+    },
+    "AddShoppingLambdaFunctionArn": {
+      "Description": "Lambda function info",
+      "Value": {
+        "Fn::GetAtt": [
+          "AddShoppingLambdaFunction",
+          "Arn"
+        ]
+      }
+    },
+    "GetShoppingsLambdaFunctionArn": {
+      "Description": "Lambda function info",
+      "Value": {
+        "Fn::GetAtt": [
+          "GetShoppingsLambdaFunction",
+          "Arn"
+        ]
+      }
+    },
+    "UpdateShoppingLambdaFunctionArn": {
+      "Description": "Lambda function info",
+      "Value": {
+        "Fn::GetAtt": [
+          "UpdateShoppingLambdaFunction",
+          "Arn"
+        ]
+      }
+    },
+    "RemoveShoppingLambdaFunctionArn": {
+      "Description": "Lambda function info",
+      "Value": {
+        "Fn::GetAtt": [
+          "RemoveShoppingLambdaFunction",
+          "Arn"
+        ]
+      }
+    },
+    "ServiceEndpoint": {
+      "Description": "URL of the service endpoint",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "ApiGatewayRestApi"
+            },
+            ".execute-api.us-east-1.amazonaws.com/dev"
+          ]
+        ]
+      }
+    }
+  }
+}
